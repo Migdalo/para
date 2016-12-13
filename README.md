@@ -31,7 +31,6 @@ Integer to ascii    | {
 Ascii to integer    | [49, 50, 51]
 Ascii to binary     | 001100010011001000110011
 Integer to binary   | 01111011
-Binary to ascii     | {
 ROT13               | 456
 ```
 
