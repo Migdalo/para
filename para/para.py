@@ -55,7 +55,7 @@ def set_logging(verbose, quiet):
 """ Creates command-line interface and processes arguments. """
 def process_arguments():
     parser = argparse.ArgumentParser(description='Converts strings and numbers to other types.',\
-        epilog='Developer: Migdalo (https://github.com/Migdalo)')
+        epilog='Author: Migdalo (https://github.com/Migdalo)')
     parser.add_argument('convertable', help='String or number you want to convert.')
     parser.add_argument('-r', '--rot', action='store_true', \
         help='Print more rotation cipher results.')
