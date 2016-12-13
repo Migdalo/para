@@ -35,11 +35,5 @@ Binary to ascii     | {
 ROT13               | 456
 ```
 
-## Installation
-```
-wget https://github.com/Migdalo/migdlib/tree/migdlib/para
-cd ???
-sudo python setup.py install
-```
 ## Licence
 Para is registered under MIT licence.
