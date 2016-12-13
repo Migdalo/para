@@ -35,5 +35,5 @@ Binary to ascii     | {
 ROT13               | 456
 ```
 
-## Licence
-Para is registered under MIT licence.
+## License
+Para is registered under [MIT license](/LICENSE).
