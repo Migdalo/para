@@ -1,6 +1,6 @@
 # Para
 
-Para is a small command-line tool that converts user input to hex, ascii, integer, base64, binary and ROT13.
+Para is a small command-line tool that converts user input to hex, ascii, decimal, base64, binary and ROT13.
 
 ## Usage
 ```
