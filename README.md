@@ -24,7 +24,7 @@ example@example:~/$ para 123
 Action              | Result
 ---------------------------------------------------------
 Ascii to hex        | 313233
-Encoding base64     | MTIz
+Encode base64     | MTIz
 Decimal to hex      | 7b
 Hex to decimal      | 291
 Decimal to ascii    | {
