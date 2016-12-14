@@ -6,7 +6,7 @@ Para is a small command-line tool that converts user input to hex, ascii, intege
 ```
 usage: para [-h] [-r] [-v | -q] convertable
 
-Converts user input to hex, ascii, integer, base64, binary and ROT13.
+Converts user input to hex, ascii, decimal, base64, binary and ROT13.
 
 positional arguments:
   convertable    String or number you want to convert.
@@ -25,12 +25,12 @@ Action              | Result
 ---------------------------------------------------------
 Ascii to hex        | 313233
 Encoding base64     | MTIz
-Integer to hex      | 7b
-Hex to integer      | 291
-Integer to ascii    | {
-Ascii to integer    | [49, 50, 51]
+Decimal to hex      | 7b
+Hex to decimal      | 291
+Decimal to ascii    | {
+Ascii to decimal    | [49, 50, 51]
 Ascii to binary     | 001100010011001000110011
-Integer to binary   | 01111011
+Decimal to binary   | 01111011
 ROT13               | 456
 ```
 
