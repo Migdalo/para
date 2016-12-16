@@ -13,11 +13,21 @@ def log_event(my_function, convertable, printable_text):
     global printoffset
     formatstring = '{0: <' + str(printoffset) +'}'
     result = my_function(convertable)
-    logevent = formatstring.format(printable_text) + ' | ' + str(result)
-    if result:
-        logger.critical(logevent)
+    
+    # Quiet mode: print only the result
+    if logger.getEffectiveLevel() is 50:
+        if result:
+            logger.critical(str(result))
+        else:
+            logger.debug(str(result))
+    
+    # Otherwise print the table
     else:
-        logger.debug(logevent)
+        logevent = formatstring.format(printable_text) + ' | ' + str(result)
+        if result:
+            logger.critical(logevent)
+        else:
+            logger.debug(logevent)
 
 """ Calls log_event for each dunction in the convert module. """
 def print_results(convertable):
@@ -73,4 +83,3 @@ def process_arguments():
 
 if __name__ == '__main__':
     process_arguments()
-
