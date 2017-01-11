@@ -30,7 +30,7 @@ def log_event(my_function, convertable, printable_text):
         else:
             logger.debug(logevent)
 
-""" Calls log_event for each dunction in the convert module. """
+""" Calls log_event for each function in the convert module. """
 def print_results(convertable):
     formatstring = '{0: <' + str(printoffset) +'}'
     logger.warn(formatstring.format('Action')+ ' | ' + 'Result')
