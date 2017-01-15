@@ -27,6 +27,9 @@ def log_event(convertion_function, convertable, printable_text):
     if LOGGER.getEffectiveLevel() is not 50:
         # If not Quiet mode: print the table
         logevent = formatstring.format(printable_text) + ' | ' + str(result)
+    else:
+        logevent = str(result)
+
     if result:
         LOGGER.critical(logevent)
     else:
