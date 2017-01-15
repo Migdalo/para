@@ -69,7 +69,7 @@ def hex_to_ascii(convertable):
     """
     try:
         return codecs.decode(convertable, 'hex').decode('ascii')
-    except ValueError:
+    except (TypeError, binascii.Error):
         return ''
 
 def encode_base64(convertable):
@@ -86,10 +86,15 @@ def decode_base64(convertable):
     Decode the input from base64 and return it. If unsuccesfull,
     return an empty string.
     """
-    try:
-        return base64.b64decode(convertable).decode('ascii')
-    except ValueError:
-        return ''
+    if convertable and isinstance(convertable, type('str')):
+        for i in range(3):
+            try:
+                return base64.b64decode(convertable).decode('ascii')
+            except (TypeError, binascii.Error):
+                convertable += '='
+            except UnicodeDecodeError: # TODO Should this do "return ''"?
+                convertable += '='
+    return ''
 
 def decimal_to_binary(convertable):
     """
