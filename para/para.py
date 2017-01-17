@@ -8,8 +8,16 @@ import logging
 import sys
 import ast
 import inspect
-import convert
-import cipher
+
+# For python 2 + python 3 compatibility
+try:
+    import convert
+except ImportError:
+    import para.convert as convert
+try:
+    import cipher
+except ImportError:
+    import para.cipher as cipher
 
 LOGGER = logging.getLogger(__name__)
 PRINT_OFFSET = 19
@@ -38,8 +46,8 @@ def log_event(convertion_function, convertable, printable_text):
 def print_results(convertable):
     """Call log_event for each function in the convert module."""
     formatstring = '{0: <' + str(PRINT_OFFSET) + '}'
-    LOGGER.warn(formatstring.format('Action') + ' | ' + 'Result')
-    LOGGER.warn('-' * PRINT_OFFSET * 3)
+    LOGGER.warning(formatstring.format('Action') + ' | ' + 'Result')
+    LOGGER.warning('-' * PRINT_OFFSET * 3)
     logevent = formatstring.format('User input ') + ' | ' + str(convertable)
     LOGGER.info(logevent)
 
@@ -50,9 +58,9 @@ def print_results(convertable):
         log_event(func[1], (convertable), title)
     log_event(cipher.rotate, (convertable), 'ROT13')
 
-def set_logging(verbose, quiet):
+def set_logging(verbose, quiet, out):
     """ Initiate logging """
-    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler = logging.StreamHandler(out)
     formatter = logging.Formatter('%(message)s'.strip())
     stream_handler.setFormatter(formatter)
 
@@ -61,11 +69,11 @@ def set_logging(verbose, quiet):
     elif quiet:
         LOGGER.setLevel(logging.CRITICAL)
     else:
-        LOGGER.setLevel(logging.WARN)
+        LOGGER.setLevel(logging.WARNING)
 
     LOGGER.addHandler(stream_handler)
 
-def process_arguments():
+def process_arguments(out=sys.stdout, test_args=None):
     """ Create command-line interface and process arguments. """
     parser = argparse.ArgumentParser( \
         description='Converts strings and numbers to other types.',\
@@ -79,17 +87,20 @@ def process_arguments():
         help='Use verbose mode.')
     verbosity_group.add_argument('-q', '--quiet', action='store_true', \
         help='Use quiet mode.')
-    args = parser.parse_args()
 
-    if not args.convertable:
-        if not sys.__stdin__.isatty():
-            line = sys.__stdin__.readline().strip()
-            args.convertable += str(ast.literal_eval('"' + line + '"'))
-            args.convertable.strip()
-        else:
-            raise parser.error("error: too few arguments")
+    if test_args:
+        args = parser.parse_args(test_args)
+    else:
+        args = parser.parse_args()
+        if not args.convertable:
+            if not sys.__stdin__.isatty():
+                line = sys.__stdin__.readline().strip()
+                args.convertable += str(ast.literal_eval('"' + line + '"'))
+                args.convertable.strip()
+            else:
+                raise parser.error("error: too few arguments")
 
-    set_logging(args.verbose, args.quiet)
+    set_logging(args.verbose, args.quiet, out)
     if args.rot:
         cipher.solve_rotation(args.convertable)
     else:
