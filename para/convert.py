@@ -69,7 +69,7 @@ def hex_to_ascii(convertable):
     """
     try:
         return codecs.decode(convertable, 'hex').decode('ascii')
-    except (TypeError, binascii.Error):
+    except (TypeError, binascii.Error, UnicodeDecodeError):
         return ''
 
 def encode_base64(convertable):
