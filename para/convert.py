@@ -12,7 +12,7 @@ def decimal_to_ascii(convertable):
     """
     try:
         return chr(int(convertable))
-    except ValueError:
+    except (ValueError,  OverflowError):
         return ''
 
 def ascii_to_decimal(convertable):
