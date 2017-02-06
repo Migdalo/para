@@ -95,7 +95,10 @@ def process_arguments(out=sys.stdout, test_args=None):
         if not args.convertable:
             if not sys.__stdin__.isatty():
                 line = sys.__stdin__.readline().strip()
-                args.convertable += str(ast.literal_eval('"' + line + '"'))
+                try:
+                    args.convertable += str(ast.literal_eval('"' + line + '"'))
+                except (SyntaxError, TypeError):
+                    raise parser.error("received non supported input syntax")
                 args.convertable.strip()
             else:
                 raise parser.error("error: too few arguments")
