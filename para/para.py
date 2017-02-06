@@ -21,20 +21,21 @@ except ImportError:
 
 LOGGER = logging.getLogger(__name__)
 PRINT_OFFSET = 19
+FORMATSTRING = '{0: <' + str(PRINT_OFFSET) + '}'
+
 
 def log_event(convertion_function, convertable, printable_text):
     """ Call a function received as a parameter and log the result. """
-    formatstring = '{0: <' + str(PRINT_OFFSET) + '}'
     try:
         result = convertion_function(convertable)
     except TypeError:
-        # Capture errors from functions which require wrong number of parameters
+        # Capture error if function requires wrong number of parameters
         LOGGER.debug('Failed to run function: ' + printable_text)
         return
 
     if LOGGER.getEffectiveLevel() is not 50:
         # If not Quiet mode: print the table
-        logevent = formatstring.format(printable_text) + ' | ' + str(result)
+        logevent = FORMATSTRING.format(printable_text) + ' | ' + str(result)
     else:
         logevent = str(result)
 
@@ -43,12 +44,12 @@ def log_event(convertion_function, convertable, printable_text):
     else:
         LOGGER.info(logevent)
 
+
 def print_results(convertable):
     """Call log_event for each function in the convert module."""
-    formatstring = '{0: <' + str(PRINT_OFFSET) + '}'
-    LOGGER.warning(formatstring.format('Action') + ' | ' + 'Result')
+    LOGGER.warning(FORMATSTRING.format('Action') + ' | ' + 'Result')
     LOGGER.warning('-' * PRINT_OFFSET * 3)
-    logevent = formatstring.format('User input ') + ' | ' + str(convertable)
+    logevent = FORMATSTRING.format('User input ') + ' | ' + str(convertable)
     LOGGER.info(logevent)
 
     # Get list of functions in the convert module and call them
@@ -57,6 +58,7 @@ def print_results(convertable):
         title = func[0].replace('_', ' ').capitalize()
         log_event(func[1], (convertable), title)
     log_event(cipher.rotate, (convertable), 'ROT13')
+
 
 def set_logging(verbose, quiet, out):
     """ Initiate logging """
@@ -73,35 +75,45 @@ def set_logging(verbose, quiet, out):
 
     LOGGER.addHandler(stream_handler)
 
+
 def process_arguments(out=sys.stdout, test_args=None):
     """ Create command-line interface and process arguments. """
-    parser = argparse.ArgumentParser( \
-        description='Converts strings and numbers to other types.',\
+    parser = argparse.ArgumentParser(
+        description='Converts strings and numbers to other types.',
         epilog='Author: Migdalo (https://github.com/Migdalo)')
-    parser.add_argument('convertable', nargs='?', default='', \
+    parser.add_argument(
+        'convertable', nargs='?', default='',
         help='String or number you want to convert.')
-    parser.add_argument('-r', '--rot', action='store_true', \
+    parser.add_argument(
+        '-r', '--rot', action='store_true',
         help='Print more rotation cipher results.')
     verbosity_group = parser.add_mutually_exclusive_group()
-    verbosity_group.add_argument('-v', '--verbose', action='store_true', \
-        help='Use verbose mode.')
-    verbosity_group.add_argument('-q', '--quiet', action='store_true', \
-        help='Use quiet mode.')
+    verbosity_group.add_argument(
+        '-v', '--verbose', action='store_true', help='Use verbose mode.')
+    verbosity_group.add_argument(
+        '-q', '--quiet', action='store_true', help='Use quiet mode.')
 
     if test_args:
         args = parser.parse_args(test_args)
+        if not args.convertable:
+            raise parser.error("too few arguments")
     else:
         args = parser.parse_args()
         if not args.convertable:
             if not sys.__stdin__.isatty():
-                line = sys.__stdin__.readline().strip()
+                try:
+                    line = sys.__stdin__.readline().strip()
+                except UnicodeDecodeError:
+                    raise parser.error("received non unicode characters")
+                if not line:
+                    raise parser.error("too few arguments")
                 try:
                     args.convertable += str(ast.literal_eval('"' + line + '"'))
-                except (SyntaxError, TypeError, UnicodeDecodeError):
+                except (SyntaxError, TypeError):
                     raise parser.error("received non supported input syntax")
                 args.convertable.strip()
             else:
-                raise parser.error("error: too few arguments")
+                raise parser.error("too few arguments")
 
     set_logging(args.verbose, args.quiet, out)
     if args.rot:
@@ -109,6 +121,7 @@ def process_arguments(out=sys.stdout, test_args=None):
     else:
         print_results(args.convertable)
     logging.shutdown()
+
 
 if __name__ == '__main__':
     process_arguments()
