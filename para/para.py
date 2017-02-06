@@ -97,7 +97,7 @@ def process_arguments(out=sys.stdout, test_args=None):
                 line = sys.__stdin__.readline().strip()
                 try:
                     args.convertable += str(ast.literal_eval('"' + line + '"'))
-                except (SyntaxError, TypeError):
+                except (SyntaxError, TypeError, UnicodeDecodeError):
                     raise parser.error("received non supported input syntax")
                 args.convertable.strip()
             else:
