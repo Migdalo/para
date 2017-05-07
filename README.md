@@ -50,7 +50,7 @@ Hex to decimal      | 291
 Example of quiet output when converting from decimal to ascii (note: there is no new line after the result):
 
 ```
-via@kali:~/Documents/para2$ python para/para.py -q -s 2 -t 1 123
+example@example$ python para/para.py -q -s 2 -t 1 123
 {
 ```
 
