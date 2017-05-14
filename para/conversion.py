@@ -5,63 +5,67 @@ import codecs
 import base64
 import binascii
 import sys
+import string
 
 
-ASCII_VALUE = '1'   # ascii
-DECIMAL_VALUE = '2' # decimal
-HEX_VALUE = '3'     # hex
-BINARY_VALUE = '4'  # binary
+ASCII_VALUE = '1'    # ascii
+DECIMAL_VALUE = '2'  # decimal
+HEX_VALUE = '3'      # hex
+BINARY_VALUE = '4'   # binary
 BASE64_VALUE = '5'
 
 
 class Conversion(object):
     """ Convert variable of some type to another type. """
 
-    def __init__(self):
+    def __init__(self, convertable=''):
         self.default_return_value = ''
+        self.convertable = convertable
 
 
 """ Ascii convertables """
 
+
 class AsciiConversion(Conversion):
     """ Convert an ascii string to another type. """
-    source_type_id = ASCII_VALUE 
+    source_type_id = ASCII_VALUE
 
     def __init__(self, convertable):
-        super(AsciiConversion, self).__init__()
-        self.convertable = convertable
+        super(AsciiConversion, self).__init__(convertable)
 
 
 class AsciiToDecimal(AsciiConversion):
     """
-    Convert the input from ascii to decimal and return it. If unsuccesfull,
-    return an empty string.
+    Convert the input from ascii to decimal and return it.
+    If unsuccesfull, return an empty string.
     """
     target_type_id = DECIMAL_VALUE
-    
+
     def __init__(self, convertable):
         super(AsciiToDecimal, self).__init__(convertable)
         self.title = 'Ascii to decimal'
-        
+
     def get_value(self):
         try:
             if sys.version_info >= (3, 0):
-                return ord(self.convertable)
+                ret = ord(self.convertable)
             else:
-                return ord(self.convertable.decode('utf-8'))
-        except TypeError:
+                ret = ord(self.convertable.decode('utf-8'))
+        except (TypeError, AttributeError):
             try:
-                numbers = []
+                ret = []
                 for i in self.convertable:
-                    numbers.append(ord(i))
-                return numbers
+                    ret.append(ord(i))
             except TypeError:
-                return self.default_return_value
+                ret = self.default_return_value
+        if ret:
+            return ret
+        else:
+            return self.default_return_value
 
 
 class AsciiToHex(AsciiConversion):
     """ Convert an ascii variable to hex. """
-
     target_type_id = HEX_VALUE
 
     def __init__(self, convertable):
@@ -70,34 +74,42 @@ class AsciiToHex(AsciiConversion):
 
     def get_value(self):
         """
-        Convert the input from ascii text to hex and return it. If unsuccesfull,
-        return an empty string.
+        Convert the input from ascii text to hex and return it.
+        If unsuccesfull, return an empty string.
         """
         if sys.version_info >= (3, 0):
-            self.convertable = self.convertable.encode('utf-8')
-            return codecs.encode(self.convertable, 'hex').decode('utf-8')
+            try:
+                return hex(ord(self.convertable))[2:]
+            except TypeError:
+                self.convertable = self.convertable.encode('utf-8')
+                return codecs.encode(self.convertable, 'hex').decode('utf-8')
+            return self.default_return_value
         else:
-            return binascii.hexlify(self.convertable)
+            try:
+                return hex(ord(self.convertable.decode('utf-8')))[2:]
+            except TypeError:
+                return binascii.hexlify(self.convertable)
 
 
 class AsciiToBinary(AsciiConversion):
     """ Convert an ascii variable to binary. """
-
     target_type_id = BINARY_VALUE
 
     def __init__(self, convertable):
         super(AsciiToBinary, self).__init__(convertable)
         self.title = 'Ascii to binary'
-        
+
     def get_value(self):
         """
-        Convert the input from text to binary and return it. If unsuccesfull,
-        return an empty string.
+        Convert the input from text to binary and return it.
+        If unsuccesfull, return an empty string.
         """
         if sys.version_info >= (3, 0):
-            return ''.join(format(ord(c), 'b').zfill(8) for c in self.convertable)
+            return ''.join(format(ord(c), 'b').zfill(8)
+                           for c in self.convertable)
         else:
-            return ''.join(format(ord(c), 'b').zfill(8) for c in self.convertable.decode('utf-8'))
+            return ''.join(format(ord(c), 'b').zfill(8)
+                           for c in self.convertable.decode('utf-8'))
 
 
 class EncodeBase64(AsciiConversion):
@@ -114,7 +126,8 @@ class EncodeBase64(AsciiConversion):
         """
         try:
             if sys.version_info >= (3, 0):
-                return base64.b64encode(self.convertable.encode('utf-8')).decode('utf-8')
+                self.convertable = self.convertable.encode('utf-8')
+                return base64.b64encode(self.convertable).decode('utf-8')
             else:
                 return base64.b64encode(self.convertable)
         except AttributeError:
@@ -140,36 +153,47 @@ class DecodeBase64(AsciiConversion):
                     return base64.b64decode(self.convertable).decode('ascii')
                 except (TypeError, binascii.Error, ValueError):
                     self.convertable += '='
-                except UnicodeDecodeError: # TODO Should this do "return ''"?
+                except UnicodeDecodeError:
+                    # TODO Should this do "return ''"?
                     self.convertable += '='
         return self.default_return_value
 
 
 """ Decimal convertables """
 
+
 class DecimalConversion(Conversion):
     """ Convert a decimal variable to another type. """
-    
     source_type_id = DECIMAL_VALUE
-    
+
     def __init__(self, convertable):
         super(DecimalConversion, self).__init__()
         try:
-            self.convertable = int(convertable)
-        except ValueError:
+            if len(convertable.split()) > 1:
+                self.convertable = [int(x) for x in convertable.split()]
+            else:
+                self.convertable = int(convertable)
+        except (ValueError, AttributeError):
             return self.default_return_value
 
 
 class DecimalToAscii(DecimalConversion):
     """ Convert a decimal variable to ascii. """
-
-    target_type_id = ASCII_VALUE 
+    target_type_id = ASCII_VALUE
 
     def __init__(self, convertable):
         super(DecimalToAscii, self).__init__(convertable)
         self.title = 'Decimal to ascii'
 
     def get_value(self):
+        if type(self.convertable) == list:
+            result = []
+            try:
+                for value in self.convertable:
+                    result.append(chr(int(value)))
+            except (ValueError, AttributeError):
+                return self.default_return_value
+            return ''.join(result)
         try:
             return chr(int(self.convertable))
         except (ValueError, AttributeError, OverflowError):
@@ -178,85 +202,112 @@ class DecimalToAscii(DecimalConversion):
 
 class DecimalToHex(DecimalConversion):
     """ Convert a decimal variable to hex. """
-
     target_type_id = HEX_VALUE
 
     def __init__(self, convertable):
         super(DecimalToHex, self).__init__(convertable)
         self.title = 'Decimal to hex'
-        
+
     def get_value(self):
+        if type(self.convertable) == list:
+            result = []
+            try:
+                for value in self.convertable:
+                    result.append(hex(int(value))[2:])
+            except AttributeError:
+                return self.default_return_value
+            return ''.join(result)
         try:
             return hex(int(self.convertable))[2:]
-        except AttributeError:
+        except (AttributeError, ValueError):
             return self.default_return_value
 
 
 class DecimalToBinary(DecimalConversion):
     """ Convert a decimal variable to binary. """
-
     target_type_id = BINARY_VALUE
 
     def __init__(self, convertable):
         super(DecimalToBinary, self).__init__(convertable)
         self.title = 'Decimal to binary'
-        
+
     def get_value(self):
-        #print self.convertable
+        if type(self.convertable) == list:
+            result = []
+            try:
+                for value in self.convertable:
+                    result.append('{0:08b}'.format(value))
+            except AttributeError:
+                return self.default_return_value
+            return ''.join(result)
         try:
             return '{0:08b}'.format(self.convertable)
-        except AttributeError:
+        except (AttributeError, ValueError):
             return self.default_return_value
 
 
 """ Hex convertables """
 
+
 class HexConversion(Conversion):
     """ Convert a hex string to another type. """
-
     source_type_id = HEX_VALUE
 
     def __init__(self, convertable):
         super(HexConversion, self).__init__()
-        self.convertable = convertable
-        '''print(convertable)
-        try:
+        if type(convertable) == list:
             self.convertable = convertable
-        except TypeError:
-            self.convertable = None'''
+        else:
+            self.convertable = convertable.split()
 
 
 class HexToAscii(HexConversion):
     """ Convert a hex string to ascii. """
-
     target_type_id = ASCII_VALUE
 
     def __init__(self, convertable):
         super(HexToAscii, self).__init__(convertable)
         self.title = 'Hex to ascii'
 
+    '''def get_value_new(self):
+        c = ''
+        for item in self.convertable:
+            if len(item) % 2 != 0:
+                value = '0' + item
+            else:
+                value = item
+            for i in range(0, len(value), 2):
+                c += chr(HexToDecimal(
+                         value[i:i+2]).get_value())
+                print(HexToDecimal(
+                         value[i:i+2]).get_value(), c)
+        return c'''
+
     def get_value(self):
         try:
-            if len(self.convertable) % 2 != 0:
-                self.convertable = '0' + self.convertable
-            return chr(HexToDecimal(self.convertable).get_value())
-        except (TypeError, ValueError, OverflowError):
-            if len(self.convertable) % 2 != 0:
-                self.convertable = '0' + self.convertable
+            if len(self.convertable[0]) <= 2:
+                result = ''
+                for value in self.convertable:
+                    result += chr(HexToDecimal(value).get_value())
+                return result
+            else:
+                raise TypeError
+        except (ValueError, TypeError, OverflowError):
             try:
+                if len(self.convertable) % 2 != 0:
+                    self.convertable = '0' + self.convertable
                 c = ''
                 for i in range(0, len(self.convertable), 2):
-                    c += chr(HexToDecimal(self.convertable[i:i+2]).get_value())
+                    c += chr(HexToDecimal(
+                             self.convertable[i:i+2]).get_value())
                 return c
             except (TypeError, ValueError):
                 return self.default_return_value
-   
             return self.default_return_value
 
 
 class HexToDecimal(HexConversion):
     """ Convert a hex string to decimal. """
-
     target_type_id = DECIMAL_VALUE
 
     def __init__(self, convertable):
@@ -264,15 +315,22 @@ class HexToDecimal(HexConversion):
         self.title = 'Hex to decimal'
 
     def get_value(self):
-        try:
-            return int(self.convertable, 16)
-        except (TypeError, ValueError, AttributeError):
+        result = []
+        for value in self.convertable:
+            try:
+                result.append(int(value, 16))
+            except (TypeError, ValueError, AttributeError):
+                return self.default_return_value
+        if not result:
             return self.default_return_value
+        elif len(result) == 1:
+            return result[0]
+        else:
+            return result
 
 
 class HexToBinary(HexConversion):
     """ Convert a hex string to binary. """
-
     target_type_id = BINARY_VALUE
 
     def __init__(self, convertable):
@@ -281,19 +339,30 @@ class HexToBinary(HexConversion):
 
     def get_value(self):
         try:
-            return '{0:08b}'.format(int(self.convertable, 16))
+            result = []
+            for value in self.convertable:
+                result.append('{0:08b}'.format(int(value, 16)))
+            if not result:
+                return self.default_return_value
+            elif len(result) == 1:
+                return result[0]
+            else:
+                return ' '.join(result)
         except (TypeError, ValueError):
             return self.default_return_value
 
 
 """ Binary convertables """
+
+
 class BinaryConversion(Conversion):
     """ Convert a binary number to another type. """
     source_type_id = BINARY_VALUE
 
     def __init__(self, convertable):
         super(BinaryConversion, self).__init__()
-        binary_list_of_truths = [str(c) == '1' or str(c) == '0' for c in str(convertable)]
+        binary_list_of_truths = [
+            str(c) == '1' or str(c) == '0' for c in str(convertable)]
         if binary_list_of_truths and all(binary_list_of_truths):
             self.convertable = convertable
         else:
@@ -310,14 +379,19 @@ class BinaryToAscii(BinaryConversion):
 
     def get_value(self):
         """
-        Convert the input from binary to ascii text and return it. If unsuccesfull,
-        return an empty string.
+        Convert the input from binary to ascii text and return it.
+        If unsuccesfull, return an empty string.
         """
         try:
-            result = b''
+            while len(self.convertable) < 8:
+                self.convertable = '0' + self.convertable
+            result = ''
             for i in range(0, len(self.convertable), 8):
-                result += binascii.unhexlify('%x' % int(self.convertable[i:i+8], 2))
-            return result.decode('ascii')
+                result += chr(int(self.convertable[i:i+8], 2))
+            if all([str(c) in string.printable for c in result]):
+                return result
+            else:
+                return self.default_return_value
         except (ValueError, TypeError):
             return self.default_return_value
 
@@ -349,9 +423,8 @@ class BinaryToHex(BinaryConversion):
     def get_value(self):
         try:
             if self.convertable:
-                return int(self.convertable, 16)
+                return hex(int(self.convertable, 2))[2:]
             else:
                 return self.default_return_value
         except ValueError:
             return self.default_return_value
-
