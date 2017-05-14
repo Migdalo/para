@@ -27,7 +27,6 @@ optional arguments:
                         4 = binary
 
 Author: Migdalo (https://github.com/Migdalo)
-
 ```
 
 Example output:
@@ -42,10 +41,8 @@ Encode base64       | MTIz
 Decimal to ascii    | {
 Decimal to binary   | 01111011
 Decimal to hex      | 7b
-Hex to ascii        | ģ
 Hex to binary       | 100100011
 Hex to decimal      | 291
-
 ```
 Example of quiet output when converting from decimal to ascii (note: there is no new line after the result):
 
@@ -53,7 +50,6 @@ Example of quiet output when converting from decimal to ascii (note: there is no
 example@example$ python para/para.py -q -s 2 -t 1 123
 {
 ```
-
 
 ## License
 Para is registered under [MIT license](/LICENSE).
