@@ -1,13 +1,13 @@
 # -*- coding: UTF-8 -*-
 """ Test cases against convert functions. """
 import para.conversion as convert
-import para.cipher as cipher
 import unittest
 
 
 class TestConvert(unittest.TestCase):
+
     def test_decimal_to_ascii(self):
-        self.assertEqual(convert.DecimalToAscii(123).get_value(), '{')
+        self.assertEqual(convert.DecimalToAscii('123').get_value(), '{')
 
     def test_decimal_to_ascii_fail(self):
         self.assertEqual(convert.DecimalToAscii('asd').get_value(), '')
@@ -22,13 +22,19 @@ class TestConvert(unittest.TestCase):
     """
 
     def test_decimal_to_hex(self):
-        self.assertEqual(convert.DecimalToHex(123).get_value(), '7b')
+        self.assertEqual(convert.DecimalToHex('123').get_value(), '7b')
 
     def test_decimal_to_hex_fail(self):
         self.assertEqual(convert.DecimalToHex('asd').get_value(), '')
 
     def test_hex_to_decimal(self):
         self.assertEqual(convert.HexToDecimal('7b').get_value(), 123)
+
+    def test_hex_to_binary(self):
+        self.assertEqual(convert.HexToBinary('7b').get_value(), '01111011')
+
+    def test_binary_to_hex(self):
+        self.assertEqual(convert.BinaryToHex('01111011').get_value(), '7b')
 
     def test_hex_to_decimal_fail(self):
         self.assertEqual(convert.HexToDecimal('sk').get_value(), '')
@@ -57,13 +63,16 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(convert.DecodeBase64('92438y7').get_value(), '')
 
     def test_decimal_to_binary(self):
-        self.assertEqual(convert.DecimalToBinary(123).get_value(), '01111011')
+        self.assertEqual(
+            convert.DecimalToBinary('123').get_value(), '01111011')
 
     def test_decimal_to_binary_fail(self):
         self.assertEqual(convert.DecimalToBinary('asd').get_value(), '')
 
     def test_ascii_to_binary(self):
-        self.assertEqual(convert.AsciiToBinary('123').get_value(), '001100010011001000110011')
+        self.assertEqual(
+            convert.AsciiToBinary('123').get_value(),
+            '001100010011001000110011')
 
     """
     def test_ascii_to_binary_fail(self):
@@ -77,7 +86,9 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(convert.BinaryToDecimal('234').get_value(), '')
 
     def test_binary_to_ascii(self):
-        self.assertEqual(convert.BinaryToAscii('001100010011001000110011').get_value(), '123')
+        self.assertEqual(
+            convert.BinaryToAscii('001100010011001000110011').get_value(),
+            '123')
 
     def test_binary_to_ascii_fail(self):
         self.assertEqual(convert.BinaryToAscii('2345').get_value(), '')
@@ -86,14 +97,14 @@ class TestConvert(unittest.TestCase):
     def test_rotation_simple(self):
         self.assertEqual(cipher.rotate('T2st1ngR0tat10n'), '6fFGeAt4dGnGedA')
     """
-    
+
     def test_chars(self):
-        self.assertEqual(convert.AsciiToDecimal('ä'.encode('utf-8')).get_value(), '228')
-        
+        self.assertEqual(
+            convert.AsciiToDecimal('ä'.encode('utf-8')).get_value(), '228')
+
     def test_chars(self):
         self.assertEqual(convert.DecimalToAscii('228').get_value(), u'ä')
 
 
 if __name__ == '__main__':
     unittest.main()
-
