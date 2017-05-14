@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 """ Convert variables from one type to another. """
 from builtins import chr
-import codecs
 import base64
 import binascii
 import sys
@@ -82,8 +81,7 @@ class AsciiToHex(AsciiConversion):
                 return hex(ord(self.convertable))[2:]
             except TypeError:
                 self.convertable = self.convertable.encode('utf-8')
-                return codecs.encode(self.convertable, 'hex').decode('utf-8')
-            return self.default_return_value
+                return binascii.hexlify(self.convertable).decode('utf-8')
         else:
             try:
                 return hex(ord(self.convertable.decode('utf-8')))[2:]
@@ -268,20 +266,6 @@ class HexToAscii(HexConversion):
     def __init__(self, convertable):
         super(HexToAscii, self).__init__(convertable)
         self.title = 'Hex to ascii'
-
-    '''def get_value_new(self):
-        c = ''
-        for item in self.convertable:
-            if len(item) % 2 != 0:
-                value = '0' + item
-            else:
-                value = item
-            for i in range(0, len(value), 2):
-                c += chr(HexToDecimal(
-                         value[i:i+2]).get_value())
-                print(HexToDecimal(
-                         value[i:i+2]).get_value(), c)
-        return c'''
 
     def get_value(self):
         try:
