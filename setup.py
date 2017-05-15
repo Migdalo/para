@@ -7,7 +7,7 @@ def para_test_suite():
     return test_suite
 
 setup(name='para',
-      version='0.1.1',
+      version='2.0',
       author='Migdalo',
       license='MIT',
       packages=['para'],
