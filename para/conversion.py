@@ -83,7 +83,7 @@ class AsciiToHex(AsciiConversion):
             return hex(ord(self.parse(self.convertable)))[2:]
         except TypeError:
             if sys.version_info >= (3, 0):
-                #self.convertable = self.convertable.encode('utf-8')
+                self.convertable = self.convertable.encode('utf-8')
                 return binascii.hexlify(self.convertable).decode('utf-8')
             else:
                 return binascii.hexlify(self.convertable)
