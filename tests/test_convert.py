@@ -50,6 +50,9 @@ class TestConvert(unittest.TestCase):
     def test_hex_to_ascii(self):
         self.assertEqual(convert.HexToAscii('7b').get_value(), '{')
 
+    def test_hex_list_to_ascii(self):
+        self.assertEqual(convert.HexToAscii('de ad be ef').get_value(), 'Þ­¾ï')
+
     def test_hex_to_ascii_fail(self):
         self.assertEqual(convert.HexToAscii('sk').get_value(), '')
 
