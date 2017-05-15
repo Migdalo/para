@@ -21,6 +21,12 @@ class Conversion(object):
         self.default_return_value = ''
         self.convertable = convertable
 
+    def parse(self, result):
+        if sys.version_info < (3, 0):
+            return result.encode('utf-8')
+        else:
+            return result
+
 
 """ Ascii convertables """
 
@@ -46,10 +52,7 @@ class AsciiToDecimal(AsciiConversion):
 
     def get_value(self):
         try:
-            if sys.version_info >= (3, 0):
-                ret = ord(self.convertable)
-            else:
-                ret = ord(self.convertable.decode('utf-8'))
+            return ord(self.parse(self.convertable))
         except (TypeError, AttributeError):
             try:
                 ret = []
@@ -76,16 +79,13 @@ class AsciiToHex(AsciiConversion):
         Convert the input from ascii text to hex and return it.
         If unsuccesfull, return an empty string.
         """
-        if sys.version_info >= (3, 0):
-            try:
-                return hex(ord(self.convertable))[2:]
-            except TypeError:
+        try:
+            return hex(ord(self.parse(self.convertable)))[2:]
+        except TypeError:
+            if sys.version_info >= (3, 0):
                 self.convertable = self.convertable.encode('utf-8')
-                return binascii.hexlify(self.convertable).decode('utf-8')
-        else:
-            try:
-                return hex(ord(self.convertable.decode('utf-8')))[2:]
-            except TypeError:
+                return binascii.hexlify(self.convertable)#.decode('utf-8')
+            else:
                 return binascii.hexlify(self.convertable)
 
 
@@ -148,7 +148,7 @@ class DecodeBase64(AsciiConversion):
         if self.convertable:
             for _ in range(3):
                 try:
-                    return base64.b64decode(self.convertable).decode('ascii')
+                    return base64.b64decode(self.convertable).decode('utf-8')
                 except (TypeError, binascii.Error, ValueError):
                     self.convertable += '='
                 except UnicodeDecodeError:
@@ -273,7 +273,7 @@ class HexToAscii(HexConversion):
                 result = ''
                 for value in self.convertable:
                     result += chr(HexToDecimal(value).get_value())
-                return result
+                return self.parse(result)
             else:
                 raise TypeError
         except (ValueError, TypeError, OverflowError):
