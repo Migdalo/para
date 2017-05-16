@@ -1,5 +1,8 @@
 # Para
 
+![travis-ci icon](https://travis-ci.org/Migdalo/para.svg?branch=para2)
+[![Coverage Status](https://coveralls.io/repos/github/Migdalo/para/badge.svg?branch=para2)](https://coveralls.io/github/Migdalo/para?branch=para2)
+
 Para is a small command-line tool that converts user input to hex, ascii, decimal, base64, binary and ROT13.
 
 ## Usage
