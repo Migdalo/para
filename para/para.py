@@ -150,6 +150,10 @@ Author: Migdalo (https://github.com/Migdalo)''')
                 line.append(ast.literal_eval(input_line))
             except TypeError as te:
                 raise parser.error(str(te))
+            except UnicodeDecodeError:
+                # Raised when piping compiled code to Para if Para
+                # is installed using Python 3.
+                raise parser.error('bad input')
         if sys.argv[0] != 'setup.py':
             line.extend(sys.argv[1:])
         args = parser.parse_args(line)
