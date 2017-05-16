@@ -21,12 +21,6 @@ class Conversion(object):
         self.default_return_value = ''
         self.convertable = convertable
 
-    def parse(self, result):
-        if sys.version_info < (3, 0):
-            return result.encode('utf-8')
-        else:
-            return result
-
 
 """ Ascii convertables """
 
@@ -52,7 +46,7 @@ class AsciiToDecimal(AsciiConversion):
 
     def get_value(self):
         try:
-            return ord(self.parse(self.convertable))
+            return ord(self.convertable)
         except (TypeError, AttributeError):
             try:
                 ret = []
@@ -80,13 +74,17 @@ class AsciiToHex(AsciiConversion):
         If unsuccesfull, return an empty string.
         """
         try:
-            return hex(ord(self.parse(self.convertable)))[2:]
+            return hex(ord(self.convertable))[2:]
         except TypeError:
-            if sys.version_info >= (3, 0):
+            result = ''
+            for char in self.convertable:
+                result += hex(ord(char))[2:]
+            return result
+            '''if sys.version_info >= (3, 0):
                 self.convertable = self.convertable.encode('utf-8')
                 return binascii.hexlify(self.convertable).decode('utf-8')
             else:
-                return binascii.hexlify(self.convertable)
+                return binascii.hexlify(self.convertable)'''
 
 
 class AsciiToBinary(AsciiConversion):
@@ -102,16 +100,11 @@ class AsciiToBinary(AsciiConversion):
         Convert the input from text to binary and return it.
         If unsuccesfull, return an empty string.
         """
-        if sys.version_info >= (3, 0):
-            return ''.join(format(ord(c), 'b').zfill(8)
-                           for c in self.convertable)
-        else:
-            return ''.join(format(ord(c), 'b').zfill(8)
-                           for c in self.convertable.decode('utf-8'))
+        return ''.join(format(ord(c), 'b').zfill(8)
+                       for c in self.convertable)
 
 
 class EncodeBase64(AsciiConversion):
-
     target_type_id = BASE64_VALUE
 
     def __init__(self, convertable):
@@ -123,8 +116,8 @@ class EncodeBase64(AsciiConversion):
         Encode the input to base64 and return it.
         """
         try:
+            self.convertable = self.convertable.encode('utf-8')
             if sys.version_info >= (3, 0):
-                self.convertable = self.convertable.encode('utf-8')
                 return base64.b64encode(self.convertable).decode('utf-8')
             else:
                 return base64.b64encode(self.convertable)
@@ -133,7 +126,6 @@ class EncodeBase64(AsciiConversion):
 
 
 class DecodeBase64(AsciiConversion):
-
     target_type_id = ASCII_VALUE
 
     def __init__(self, convertable):
@@ -150,9 +142,6 @@ class DecodeBase64(AsciiConversion):
                 try:
                     return base64.b64decode(self.convertable).decode('utf-8')
                 except (TypeError, binascii.Error, ValueError):
-                    self.convertable += '='
-                except UnicodeDecodeError:
-                    # TODO Should this do "return ''"?
                     self.convertable += '='
         return self.default_return_value
 
@@ -186,14 +175,14 @@ class DecimalToAscii(DecimalConversion):
     def get_value(self):
         if type(self.convertable) == list:
             result = []
-            try:
-                for value in self.convertable:
-                    result.append(chr(int(value)))
-            except (ValueError, AttributeError):
-                return self.default_return_value
+            for value in self.convertable:
+                result.append(chr(int(value)))
             return ''.join(result)
         try:
-            return chr(int(self.convertable))
+            if sys.version_info >= (3, 0):
+                return chr(int(self.convertable))
+            else:
+                return chr(int(self.convertable)).encode('utf-8')
         except (ValueError, AttributeError, OverflowError):
             return self.default_return_value
 
@@ -253,10 +242,22 @@ class HexConversion(Conversion):
 
     def __init__(self, convertable):
         super(HexConversion, self).__init__()
-        if type(convertable) == list:
+        # Check that all the characters in the convertable are
+        # valid hex digits.
+        hex_list_of_truths = []
+        if type(convertable) is not list:
+            convertable = convertable.split()
+        for value in convertable:
+            try:
+                hex_list_of_truths.extend([
+                    c in string.hexdigits for c in value])
+            except UnicodeEncodeError:
+                hex_list_of_truths = None
+                break
+        if hex_list_of_truths and all(hex_list_of_truths):
             self.convertable = convertable
         else:
-            self.convertable = convertable.split()
+            self.convertable = self.default_return_value
 
 
 class HexToAscii(HexConversion):
@@ -268,26 +269,15 @@ class HexToAscii(HexConversion):
         self.title = 'Hex to ascii'
 
     def get_value(self):
-        try:
-            if len(self.convertable[0]) <= 2:
-                result = ''
-                for value in self.convertable:
-                    result += chr(HexToDecimal(value).get_value())
-                return self.parse(result)
+        result = ''
+        for val in self.convertable:
+            if len(val) % 2 != 0:
+                value = '0' + val
             else:
-                raise TypeError
-        except (ValueError, TypeError, OverflowError):
-            try:
-                if len(self.convertable) % 2 != 0:
-                    self.convertable = '0' + self.convertable
-                c = ''
-                for i in range(0, len(self.convertable), 2):
-                    c += chr(HexToDecimal(
-                             self.convertable[i:i+2]).get_value())
-                return c
-            except (TypeError, ValueError):
-                return self.default_return_value
-            return self.default_return_value
+                value = val
+            for i in range(0, len(value), 2):
+                result += chr(HexToDecimal(value[i:i+2]).get_value())
+        return result
 
 
 class HexToDecimal(HexConversion):
@@ -345,8 +335,11 @@ class BinaryConversion(Conversion):
 
     def __init__(self, convertable):
         super(BinaryConversion, self).__init__()
-        binary_list_of_truths = [
-            str(c) == '1' or str(c) == '0' for c in str(convertable)]
+        try:
+            binary_list_of_truths = [
+                str(c) == '1' or str(c) == '0' for c in str(convertable)]
+        except UnicodeEncodeError:
+            binary_list_of_truths = None
         if binary_list_of_truths and all(binary_list_of_truths):
             self.convertable = convertable
         else:
@@ -397,7 +390,6 @@ class BinaryToDecimal(BinaryConversion):
 
 class BinaryToHex(BinaryConversion):
     """ Convert a binary number to hex. """
-
     target_type_id = HEX_VALUE
 
     def __init__(self, convertable):

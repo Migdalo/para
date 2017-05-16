@@ -28,11 +28,20 @@ class Para(object):
     """ Convert variable of some type to another type. """
     def __init__(self, value, logger, source='1 2 3 4 5',
                  target='1 2 3 4 5', out=sys.stdout):
-        self.value = value
+        self.value = self.parse(value)
         self.logger = logger
         self.source = source.split()
         self.target = target.split()
         self.output_stream = out
+
+    def parse(self, result):
+        if sys.version_info < (3, 0):
+            try:
+                return result.encode('utf-8')
+            except UnicodeDecodeError:
+                return result.decode('utf-8')
+        else:
+            return result
 
     def is_subclass(self, sub_cls, cls):
         '''
@@ -46,7 +55,7 @@ class Para(object):
         """ Get list of functions in the convert module and call them. """
         self.logger.warning(FORMATSTRING.format('Action') + ' | ' + 'Result')
         self.logger.warning('-' * PRINT_OFFSET * 3)
-        logevent = FORMATSTRING.format('User input ') + ' | ' + str(self.value)
+        logevent = FORMATSTRING.format('User input ') + ' | ' + ''.join(self.value)
         self.logger.info(logevent)
         convert_classes = inspect.getmembers(conversion, inspect.isclass)
         for title, conv in convert_classes:
@@ -139,8 +148,6 @@ Author: Migdalo (https://github.com/Migdalo)''')
             try:
                 input_line = '"' + instream.readline().strip() + '"'
                 line.append(ast.literal_eval(input_line))
-            except UnicodeDecodeError:
-                raise parser.error("received non unicode characters")
             except TypeError as te:
                 raise parser.error(str(te))
         if sys.argv[0] != 'setup.py':
