@@ -31,6 +31,7 @@ class TestPara(unittest.TestCase):
                        'Decimal to ascii    | {\n' +
                        'Decimal to binary   | 01111011\n' +
                        'Decimal to hex      | 7b\n' +
+                       'Hex to ascii        | #\n' +
                        'Hex to binary       | 100100011\n' +
                        'Hex to decimal      | 291')
         out = StringIO()
@@ -54,7 +55,7 @@ class TestPara(unittest.TestCase):
                        'Decimal to ascii    | {\n' +
                        'Decimal to binary   | 01111011\n' +
                        'Decimal to hex      | 7b\n' +
-                       'Hex to ascii        | \n' +
+                       'Hex to ascii        | #\n' +
                        'Hex to binary       | 100100011\n' +
                        'Hex to decimal      | 291')
         out = StringIO()
@@ -65,7 +66,7 @@ class TestPara(unittest.TestCase):
     def test_quiet(self):
         """ Test para with a basic input using quiet mode. """
         result = parse('001100010011001000110011\n[49, 50, 51]\n313233' +
-                       '\nMTIz\n{\n01111011\n7b\n100100011\n291')
+                       '\nMTIz\n{\n01111011\n7b\n#\n100100011\n291')
         out = StringIO()
         para.process_arguments(out, test_args=['-q', '123'])
         my_result = out.getvalue().strip()
@@ -91,7 +92,7 @@ class TestPara(unittest.TestCase):
         result = parse('001100010011000100110001001000000011000100110' +
                        '00100110001\n[49, 49, 49, 32, 49, 49, 49]\n' +
                        '31313120313131\nMTExIDExMQ==\noo\n' +
-                       '0110111101101111\n6f6f\n' +
+                       '0110111101101111\n6f6f\n\n' +
                        '100010001 100010001\n[273, 273]')
         out = StringIO()
         para.process_arguments(out, test_args=['-q', '111 111'])
@@ -109,6 +110,7 @@ class TestPara(unittest.TestCase):
                        'Decimal to ascii    | {\n' +
                        'Decimal to binary   | 01111011\n' +
                        'Decimal to hex      | 7b\n' +
+                       'Hex to ascii        | #\n' +
                        'Hex to binary       | 100100011\n' +
                        'Hex to decimal      | 291')
         out = StringIO()
