@@ -56,7 +56,8 @@ class Para(object):
         """ Get list of functions in the convert module and call them. """
         self.logger.warning(FORMATSTRING.format('Action') + ' | ' + 'Result')
         self.logger.warning('-' * PRINT_OFFSET * 3)
-        logevent = FORMATSTRING.format('User input ') + ' | ' + ''.join(self.value)
+        logevent = FORMATSTRING.format('User input ') + ' | ' +\
+            ''.join(self.value)
         self.logger.info(logevent)
         convert_classes = inspect.getmembers(conversion, inspect.isclass)
         for title, conv in convert_classes:
@@ -111,7 +112,7 @@ def set_logging(verbose, quiet, out):
     return logger
 
 
-def process_arguments(out=sys.stdout, instream=sys.__stdin__, test_args=None):
+def process_arguments(out=sys.stdout, instream=sys.__stdin__, test_args=[]):
     """ Create command-line interface and process arguments. """
     parser = argparse.ArgumentParser(
         description='Converts strings and numbers to other types.',
@@ -138,17 +139,11 @@ Author: Migdalo (https://github.com/Migdalo)''')
         '-v', '--verbose', action='store_true', help='Use verbose mode.')
     verbosity_group.add_argument(
         '-q', '--quiet', action='store_true', help='Use quiet mode.')
-    if test_args:
-        args = parser.parse_args(test_args)
-        if not args.convertable:
-            raise parser.error("too few arguments")
-        convertable = Para(args.convertable, args.source, args.target)
-    else:
-        line = []
+    if not test_args:
         if not instream.isatty():
             try:
                 input_line = '"' + instream.readline().strip() + '"'
-                line.append(ast.literal_eval(input_line))
+                test_args.append(ast.literal_eval(input_line))
             except UnicodeDecodeError:
                 # Raised when piping compiled code to Para if Para
                 # is installed using Python 3.
@@ -157,16 +152,16 @@ Author: Migdalo (https://github.com/Migdalo)''')
                 # Capture null byte exceptions.
                 # TypeError in Python2 and ValueError in Python3
                 raise parser.error(str(te))
-        if sys.argv[0] != 'setup.py':
-            line.extend(sys.argv[1:])
-        args = parser.parse_args(line)
+        if sys.argv[0] != 'setup.py': # pragma: no cover
+            test_args.extend(sys.argv[1:])
+    args = parser.parse_args(test_args)
     logger = set_logging(args.verbose, args.quiet, out)
     if not args.convertable:
-        raise parser.error("need something to convert")
+        raise parser.error("too few arguments")
     convertable = Para(args.convertable, logger, args.source, args.target, out)
     convertable.iterate_conversions()
     logging.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     process_arguments()
