@@ -34,13 +34,14 @@ class Para(object):
         self.target = target.split()
         self.output_stream = out
 
-    def parse(self, result):
-        if sys.version_info < (3, 0):
+    if sys.version_info < (3, 0):
+        def parse(self, result):
             try:
                 return result.encode('utf-8')
             except UnicodeDecodeError:
                 return result.decode('utf-8')
-        else:
+    else:
+        def parse(self, result):
             return result
 
     def is_subclass(self, sub_cls, cls):
@@ -148,12 +149,14 @@ Author: Migdalo (https://github.com/Migdalo)''')
             try:
                 input_line = '"' + instream.readline().strip() + '"'
                 line.append(ast.literal_eval(input_line))
-            except TypeError as te:
-                raise parser.error(str(te))
             except UnicodeDecodeError:
                 # Raised when piping compiled code to Para if Para
                 # is installed using Python 3.
                 raise parser.error('bad input')
+            except (TypeError, ValueError) as te:
+                # Capture null byte exceptions.
+                # TypeError in Python2 and ValueError in Python3
+                raise parser.error(str(te))
         if sys.argv[0] != 'setup.py':
             line.extend(sys.argv[1:])
         args = parser.parse_args(line)

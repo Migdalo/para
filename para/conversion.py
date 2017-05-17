@@ -80,11 +80,6 @@ class AsciiToHex(AsciiConversion):
             for char in self.convertable:
                 result += hex(ord(char))[2:]
             return result
-            '''if sys.version_info >= (3, 0):
-                self.convertable = self.convertable.encode('utf-8')
-                return binascii.hexlify(self.convertable).decode('utf-8')
-            else:
-                return binascii.hexlify(self.convertable)'''
 
 
 class AsciiToBinary(AsciiConversion):
@@ -115,14 +110,11 @@ class EncodeBase64(AsciiConversion):
         """
         Encode the input to base64 and return it.
         """
-        try:
-            self.convertable = self.convertable.encode('utf-8')
-            if sys.version_info >= (3, 0):
-                return base64.b64encode(self.convertable).decode('utf-8')
-            else:
-                return base64.b64encode(self.convertable)
-        except AttributeError:
-            return base64.b64encode(str(self.convertable))
+        self.convertable = self.convertable.encode('utf-8')
+        if sys.version_info >= (3, 0):
+            return base64.b64encode(self.convertable).decode('utf-8')
+        else:
+            return base64.b64encode(self.convertable)
 
 
 class DecodeBase64(AsciiConversion):
@@ -198,11 +190,8 @@ class DecimalToHex(DecimalConversion):
     def get_value(self):
         if type(self.convertable) == list:
             result = []
-            try:
-                for value in self.convertable:
-                    result.append(hex(int(value))[2:])
-            except AttributeError:
-                return self.default_return_value
+            for value in self.convertable:
+                result.append(hex(int(value))[2:])
             return ''.join(result)
         try:
             return hex(int(self.convertable))[2:]
@@ -291,10 +280,7 @@ class HexToDecimal(HexConversion):
     def get_value(self):
         result = []
         for value in self.convertable:
-            try:
-                result.append(int(value, 16))
-            except (TypeError, ValueError, AttributeError):
-                return self.default_return_value
+            result.append(int(value, 16))
         if not result:
             return self.default_return_value
         elif len(result) == 1:
@@ -312,18 +298,15 @@ class HexToBinary(HexConversion):
         self.title = 'Hex to binary'
 
     def get_value(self):
-        try:
-            result = []
-            for value in self.convertable:
-                result.append('{0:08b}'.format(int(value, 16)))
-            if not result:
-                return self.default_return_value
-            elif len(result) == 1:
-                return result[0]
-            else:
-                return ' '.join(result)
-        except (TypeError, ValueError):
+        result = []
+        for value in self.convertable:
+            result.append('{0:08b}'.format(int(value, 16)))
+        if not result:
             return self.default_return_value
+        elif len(result) == 1:
+            return result[0]
+        else:
+            return ' '.join(result)
 
 
 """ Binary convertables """
@@ -359,17 +342,14 @@ class BinaryToAscii(BinaryConversion):
         Convert the input from binary to ascii text and return it.
         If unsuccesfull, return an empty string.
         """
-        try:
-            while len(self.convertable) < 8:
-                self.convertable = '0' + self.convertable
-            result = ''
-            for i in range(0, len(self.convertable), 8):
-                result += chr(int(self.convertable[i:i+8], 2))
-            if all([str(c) in string.printable for c in result]):
-                return result
-            else:
-                return self.default_return_value
-        except (ValueError, TypeError):
+        while len(self.convertable) < 8:
+            self.convertable = '0' + self.convertable
+        result = ''
+        for i in range(0, len(self.convertable), 8):
+            result += chr(int(self.convertable[i:i+8], 2))
+        if all([str(c) in string.printable for c in result]):
+            return result
+        else:
             return self.default_return_value
 
 
@@ -397,10 +377,7 @@ class BinaryToHex(BinaryConversion):
         self.title = 'Binary to hex'
 
     def get_value(self):
-        try:
-            if self.convertable:
-                return hex(int(self.convertable, 2))[2:]
-            else:
-                return self.default_return_value
-        except ValueError:
+        if self.convertable:
+            return hex(int(self.convertable, 2))[2:]
+        else:
             return self.default_return_value
