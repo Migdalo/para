@@ -1,21 +1,35 @@
 # Para
 
-Para is a small command-line tool that converts user input to hex, ascii, decimal, base64, binary and ROT13.
+![travis-ci icon](https://travis-ci.org/Migdalo/para.svg?branch=para2)
+[![Coverage Status](https://coveralls.io/repos/github/Migdalo/para/badge.svg?branch=para2)](https://coveralls.io/github/Migdalo/para?branch=para2)
+
+Para is a small command-line tool that converts user input to hex, ascii, decimal, base64 and binary.
 
 ## Usage
 ```
-usage: para [-h] [-r] [-v | -q] convertable
+usage: para.py [-h] [-s SOURCE] [-t TARGET] [-v | -q] [convertable]
 
-Converts user input to hex, ascii, decimal, base64, binary and ROT13.
+Converts strings and numbers to other types.
 
 positional arguments:
-  convertable    String or number you want to convert.
+  convertable           String or number you want to convert.
 
 optional arguments:
-  -h, --help     show this help message and exit
-  -r, --rot      Print more rotation cipher results.
-  -v, --verbose  Use verbose mode.
-  -q, --quiet    Use quiet mode.
+  -h, --help            show this help message and exit
+  -s SOURCE, --source SOURCE
+                        Input value type.
+  -t TARGET, --target TARGET
+                        Output value type.
+  -v, --verbose         Use verbose mode.
+  -q, --quiet           Use quiet mode.
+
+  Source and target type values:
+                        1 = string
+                        2 = decimal
+                        3 = hex
+                        4 = binary
+
+Author: Migdalo (https://github.com/Migdalo)
 ```
 
 Example output:
@@ -23,15 +37,21 @@ Example output:
 example@example:~/$ para 123
 Action              | Result
 ---------------------------------------------------------
+Ascii to binary     | 001100010011001000110011
+Ascii to decimal    | [49, 50, 51]
 Ascii to hex        | 313233
 Encode base64       | MTIz
-Decimal to hex      | 7b
-Hex to decimal      | 291
 Decimal to ascii    | {
-Ascii to decimal    | [49, 50, 51]
-Ascii to binary     | 001100010011001000110011
 Decimal to binary   | 01111011
-ROT13               | 456
+Decimal to hex      | 7b
+Hex to binary       | 100100011
+Hex to decimal      | 291
+```
+Example of quiet output when converting from decimal to ascii (note: there is no new line after the result):
+
+```
+example@example$ python para/para.py -q -s 2 -t 1 123
+{
 ```
 
 ## License
