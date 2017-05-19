@@ -48,16 +48,10 @@ class AsciiToDecimal(AsciiConversion):
         try:
             return ord(self.convertable)
         except (TypeError, AttributeError):
-            try:
-                ret = []
-                for i in self.convertable:
-                    ret.append(ord(i))
-            except TypeError:
-                ret = self.default_return_value
-        if ret:
+            ret = []
+            for i in self.convertable:
+                ret.append(ord(i))
             return ret
-        else:
-            return self.default_return_value
 
 
 class AsciiToHex(AsciiConversion):
@@ -210,11 +204,8 @@ class DecimalToBinary(DecimalConversion):
     def get_value(self):
         if type(self.convertable) == list:
             result = []
-            try:
-                for value in self.convertable:
-                    result.append('{0:08b}'.format(value))
-            except AttributeError:
-                return self.default_return_value
+            for value in self.convertable:
+                result.append('{0:08b}'.format(value))
             return ''.join(result)
         try:
             return '{0:08b}'.format(self.convertable)

@@ -79,8 +79,11 @@ class Para(object):
         """ Call a function received as a parameter and log the result. """
         printable_text = convertable.title
         result = convertable.get_value()
-        if type(result) is not str: #in [int, list, long]:
-            result = str(result)
+        if type(result) is not str:
+            try:
+                result = str(result)
+            except UnicodeEncodeError:
+                pass
         if self.logger.getEffectiveLevel() is not 50:
             # If not Quiet mode: print the table
             logevent = FORMATSTRING.format(printable_text) + ' | ' + result
@@ -112,7 +115,7 @@ def set_logging(verbose, quiet, out):
     return logger
 
 
-def process_arguments(out=sys.stdout, instream=sys.__stdin__, test_args=[]):
+def process_arguments(out=sys.stdout, instream=sys.__stdin__, args_list=[]):
     """ Create command-line interface and process arguments. """
     parser = argparse.ArgumentParser(
         description='Converts strings and numbers to other types.',
@@ -139,11 +142,11 @@ Author: Migdalo (https://github.com/Migdalo)''')
         '-v', '--verbose', action='store_true', help='Use verbose mode.')
     verbosity_group.add_argument(
         '-q', '--quiet', action='store_true', help='Use quiet mode.')
-    if not test_args:
+    if not args_list:
         if not instream.isatty():
             try:
                 input_line = '"' + instream.readline().strip() + '"'
-                test_args.append(ast.literal_eval(input_line))
+                args_list.append(ast.literal_eval(input_line))
             except UnicodeDecodeError:
                 # Raised when piping compiled code to Para if Para
                 # is installed using Python 3.
@@ -152,16 +155,16 @@ Author: Migdalo (https://github.com/Migdalo)''')
                 # Capture null byte exceptions.
                 # TypeError in Python2 and ValueError in Python3
                 raise parser.error(str(te))
-        if sys.argv[0] != 'setup.py': # pragma: no cover
-            test_args.extend(sys.argv[1:])
-    args = parser.parse_args(test_args)
-    logger = set_logging(args.verbose, args.quiet, out)
+        if sys.argv[0] != 'setup.py':  # pragma: no cover
+            args_list.extend(sys.argv[1:])
+    args = parser.parse_args(args_list)
     if not args.convertable:
         raise parser.error("too few arguments")
+    logger = set_logging(args.verbose, args.quiet, out)
     convertable = Para(args.convertable, logger, args.source, args.target, out)
     convertable.iterate_conversions()
     logging.shutdown()
 
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     process_arguments()
