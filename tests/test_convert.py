@@ -57,7 +57,8 @@ class TestConvert(unittest.TestCase):
         self.assertEqual(convert.HexToAscii('7b').get_value(), '{')
 
     def test_hex_list_to_ascii(self):
-        self.assertEqual(convert.HexToAscii('de ad be ef').get_value(), u'Þ­¾ï')
+        self.assertEqual(
+            convert.HexToAscii('de ad be ef').get_value(), u'Þ­¾ï')
 
     def test_hex_string_to_ascii(self):
         self.assertEqual(convert.HexToAscii('666c6167').get_value(), 'flag')
