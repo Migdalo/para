@@ -20,6 +20,8 @@ else:
 class TestPara(unittest.TestCase):
     """ Test process_arguments() function. """
 
+    # TODO Add test for hex to ascii conversion with input value 'ad'.
+
     def test_decimal_input(self):
         """ Test para with a basic input. """
         result = parse('Action              | Result\n' +
@@ -35,7 +37,7 @@ class TestPara(unittest.TestCase):
                        'Hex to binary       | 100100011\n' +
                        'Hex to decimal      | 291')
         out = StringIO()
-        para.process_arguments(out, test_args=['123'])
+        para.process_arguments(out, args_list=['123'])
         my_result = out.getvalue().strip()
         self.assertMultiLineEqual(my_result, result)
 
@@ -59,7 +61,7 @@ class TestPara(unittest.TestCase):
                        'Hex to binary       | 100100011\n' +
                        'Hex to decimal      | 291')
         out = StringIO()
-        para.process_arguments(out, test_args=['-v', '123'])
+        para.process_arguments(out, args_list=['-v', '123'])
         my_result = out.getvalue().strip()
         self.assertMultiLineEqual(my_result, result)
 
@@ -68,7 +70,7 @@ class TestPara(unittest.TestCase):
         result = parse('001100010011001000110011\n[49, 50, 51]\n313233' +
                        '\nMTIz\n{\n01111011\n7b\n#\n100100011\n291')
         out = StringIO()
-        para.process_arguments(out, test_args=['-q', '123'])
+        para.process_arguments(out, args_list=['-q', '123'])
         my_result = out.getvalue().strip()
         self.assertMultiLineEqual(my_result, result)
 
@@ -77,7 +79,7 @@ class TestPara(unittest.TestCase):
         result = '{'
         out = StringIO()
         para.process_arguments(
-            out, test_args=['-q', '-s', '2', '-t', '1', '123'])
+            out, args_list=['-q', '-s', '2', '-t', '1', '123'])
         my_result = out.getvalue().strip()
         self.assertMultiLineEqual(my_result, result)
 
@@ -85,7 +87,7 @@ class TestPara(unittest.TestCase):
         """ Test para without giving any input. """
         out = StringIO()
         with self.assertRaises(SystemExit):
-            para.process_arguments(out, test_args=[''])
+            para.process_arguments(out, args_list=[''])
 
     def test_list_value(self):
         """ Test para with a list input using quiet mode. """
@@ -95,7 +97,7 @@ class TestPara(unittest.TestCase):
                        '0110111101101111\n6f6f\n\n' +
                        '100010001 100010001\n[273, 273]')
         out = StringIO()
-        para.process_arguments(out, test_args=['-q', '111 111'])
+        para.process_arguments(out, args_list=['-q', '111 111'])
         my_result = out.getvalue().strip()
         self.assertMultiLineEqual(my_result, result)
 
