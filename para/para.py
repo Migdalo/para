@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 """
 Para is a conversion tool that converts user input to hex, ascii,
-decimal, base64, binary and ROT13.
+decimal, base64, binary.
 """
 from __future__ import print_function
 import argparse
@@ -78,11 +78,22 @@ class Para(object):
     def log_event(self, convertable):
         """ Call a function received as a parameter and log the result. """
         printable_text = convertable.title
-        result = convertable.get_value()
+        try:
+            result = convertable.get_value()
+        except Exception as e:  # pragma: no cover
+            self.logger.debug(
+                'DEBUG (Unhandeled exception). ' +
+                'Failed to convert user input:', e)
+            pass
         if type(result) is not str:
             try:
                 result = str(result)
             except UnicodeEncodeError:
+                pass
+            except Exception as e:  # pragma: no cover
+                self.logger.debug(
+                    'DEBUG (Unhandeled exception). ' +
+                    'Failed to convert the result to a string:', e)
                 pass
         if self.logger.getEffectiveLevel() is not 50:
             # If not Quiet mode: print the table
@@ -101,22 +112,22 @@ class Para(object):
             self.logger.info(logevent)
 
 
-def set_logging(verbose, quiet, out):
+def set_logging(verbose, quiet, out, debug):
     """ Initiate logging """
     logger = logging.getLogger(__name__)
     stream_handler = logging.StreamHandler(out)
+    logger.addHandler(stream_handler)
     if verbose:
         logger.setLevel(logging.INFO)
     elif quiet:
         logger.setLevel(logging.CRITICAL)
+    elif debug:
+        logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.WARNING)
-    logger.addHandler(stream_handler)
     return logger
 
-
-def process_arguments(out=sys.stdout, instream=sys.__stdin__, args_list=[]):
-    """ Create command-line interface and process arguments. """
+def get_argument_parser():
     parser = argparse.ArgumentParser(
         description='Converts strings and numbers to other types.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -142,6 +153,15 @@ Author: Migdalo (https://github.com/Migdalo)''')
         '-v', '--verbose', action='store_true', help='Use verbose mode.')
     verbosity_group.add_argument(
         '-q', '--quiet', action='store_true', help='Use quiet mode.')
+    parser.add_argument(
+        '-d', '--debug', action='store_true', help='Use debug mode.')
+    return parser
+
+def process_arguments(
+        out=sys.stdout, instream=sys.__stdin__, args_list=[], debug=False):
+    """ Create command-line interface and process arguments. """
+    parser = get_argument_parser()
+
     if not args_list:
         if not instream.isatty():
             try:
@@ -154,14 +174,25 @@ Author: Migdalo (https://github.com/Migdalo)''')
             except (TypeError, ValueError) as te:
                 # Capture null byte exceptions.
                 # TypeError in Python2 and ValueError in Python3
+                #print(sys.exc_info()[2].print_stack())
                 raise parser.error(str(te))
+            except Exception as e:  # pragma: no cover
+                logger.debug(
+                    'DEBUG (Unhandeled exception). ' +
+                    'Failed to process user input:', e)
+                raise parser.error('Unknown input')
         if sys.argv[0] != 'setup.py':  # pragma: no cover
             args_list.extend(sys.argv[1:])
     args = parser.parse_args(args_list)
     if not args.convertable:
-        raise parser.error("too few arguments")
-    logger = set_logging(args.verbose, args.quiet, out)
-    convertable = Para(args.convertable, logger, args.source, args.target, out)
+        raise parser.error('too few arguments')
+    if args.debug:
+        debug = args.debug
+    logger = set_logging(args.verbose, args.quiet, out, debug)
+    try:
+        convertable = Para(args.convertable, logger, args.source, args.target, out)
+    except UnicodeDecodeError:  # pragma: no cover
+        raise parser.error('UnicodeDecodeError')
     convertable.iterate_conversions()
     logging.shutdown()
 
